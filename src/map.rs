@@ -5,6 +5,10 @@ use std::cmp::{max, min};
 extern crate specs;
 use specs::prelude::*;
 
+pub const MAPWIDTH: usize = 80;
+pub const MAPHEIGHT: usize = 43;
+const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
+
 #[derive(PartialEq, Copy, Clone)]
 pub enum TileType {
     Wall,
@@ -18,6 +22,8 @@ pub struct Map {
     pub height: i32,
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
+    pub blocked: Vec<bool>,
+    pub tile_content: Vec<Vec<Entity>>,
 }
 
 impl Map {
@@ -56,12 +62,14 @@ impl Map {
     /// This gives a handful of random rooms and corridors joined together with random corridors
     pub fn new_map_rooms_and_corridors() -> Map {
         let mut map = Map {
-            tiles: vec![TileType::Wall; 80 * 50],
+            tiles: vec![TileType::Wall; MAPCOUNT],
             rooms: Vec::new(),
-            width: 80,
-            height: 50,
-            revealed_tiles: vec![false; 80 * 50],
-            visible_tiles: vec![false; 80 * 50],
+            width: MAPWIDTH as i32,
+            height: MAPHEIGHT as i32,
+            revealed_tiles: vec![false; MAPCOUNT],
+            visible_tiles: vec![false; MAPCOUNT],
+            blocked: vec![false; MAPCOUNT],
+            tile_content: vec![Vec::new(); MAPCOUNT],
         };
 
         const MAX_ROOMS: i32 = 30;
@@ -73,8 +81,8 @@ impl Map {
         for _i in 0..MAX_ROOMS {
             let w = rng.range(MIN_SIZE, MAX_SIZE);
             let h = rng.range(MIN_SIZE, MAX_SIZE);
-            let x = rng.roll_dice(1, 80 - w - 1) - 1;
-            let y = rng.roll_dice(1, 50 - h - 1) - 1;
+            let x = rng.roll_dice(1, MAPWIDTH as i32 - w - 1) - 1;
+            let y = rng.roll_dice(1, MAPHEIGHT as i32 - h - 1) - 1;
             let new_room = Rect::new(x, y, w, h);
             let mut ok = true;
             for other_room in map.rooms.iter() {
@@ -102,6 +110,26 @@ impl Map {
         }
         map
     }
+
+    fn is_exit_valid(&self, x: i32, y: i32) -> bool {
+        if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 {
+            return false;
+        }
+        let idx = self.xy_idx(x, y);
+        !self.blocked[idx]
+    }
+
+    pub fn populate_blocked(&mut self) {
+        for (i, tile) in self.tiles.iter_mut().enumerate() {
+            self.blocked[i] = *tile == TileType::Wall;
+        }
+    }
+
+    pub fn clear_content_index(&mut self) {
+        for content in self.tile_content.iter_mut() {
+            content.clear();
+        }
+    }
 }
 
 impl Algorithm2D for Map {
@@ -122,8 +150,40 @@ impl BaseMap for Map {
         self.tiles[idx as usize] == TileType::Wall
     }
 
-    fn get_available_exits(&self, _idx: i32) -> Vec<(i32, f32)> {
-        Vec::new()
+    fn get_available_exits(&self, idx: i32) -> Vec<(i32, f32)> {
+        let mut exits: Vec<(i32, f32)> = Vec::new();
+        let x = idx % self.width;
+        let y = idx / self.width;
+
+        // Cardinal directions
+        if self.is_exit_valid(x - 1, y) {
+            exits.push((idx - 1, 1.0));
+        }
+        if self.is_exit_valid(x + 1, y) {
+            exits.push((idx + 1, 1.0));
+        }
+        if self.is_exit_valid(x, y - 1) {
+            exits.push((idx - self.width, 1.0));
+        }
+        if self.is_exit_valid(x, y + 1) {
+            exits.push((idx + self.width, 1.0));
+        }
+
+        // Diagonals
+        if self.is_exit_valid(x - 1, y - 1) {
+            exits.push(((idx - self.width) - 1, 1.45));
+        }
+        if self.is_exit_valid(x + 1, y - 1) {
+            exits.push(((idx - self.width) + 1, 1.45));
+        }
+        if self.is_exit_valid(x - 1, y + 1) {
+            exits.push(((idx + self.width) - 1, 1.45));
+        }
+        if self.is_exit_valid(x + 1, y + 1) {
+            exits.push(((idx + self.width) + 1, 1.45));
+        }
+
+        exits
     }
 
     fn get_pathing_distance(&self, idx1: i32, idx2: i32) -> f32 {
