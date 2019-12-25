@@ -6,7 +6,7 @@ extern crate specs;
 use specs::prelude::*;
 
 pub const MAPWIDTH: usize = 80;
-pub const MAPHEIGHT: usize = 43;
+pub const MAPHEIGHT: usize = 50;
 const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
 
 #[derive(PartialEq, Copy, Clone)]
