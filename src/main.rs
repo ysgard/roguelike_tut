@@ -21,9 +21,9 @@ use gamelog::GameLog;
 mod gui;
 mod inventory_system;
 mod spawner;
-use inventory_system::{ItemCollectionSystem, ItemDropSystem, PotionUseSystem};
+use inventory_system::{ItemCollectionSystem, ItemDropSystem, ItemUseSystem};
 
-use rltk::{Console, GameState, Point, Rltk, RGB};
+use rltk::{Console, GameState, Point, Rltk};
 use specs::prelude::*;
 #[macro_use]
 extern crate specs_derive;
@@ -38,6 +38,7 @@ pub enum RunState {
     MonsterTurn,
     ShowDropItem,
     ShowInventory,
+    ShowTargeting { range: i32, item: Entity },
 }
 
 pub struct State {
@@ -77,6 +78,7 @@ impl GameState for State {
             RunState::PreRun => {
                 self.run_systems();
                 self.ecs.maintain();
+                spawner::spawn_backpack(&mut self.ecs);
                 newrunstate = RunState::AwaitingInput;
             }
             RunState::AwaitingInput => {
@@ -99,15 +101,45 @@ impl GameState for State {
                     gui::ItemMenuResult::NoResponse => {}
                     gui::ItemMenuResult::Selected => {
                         let item_entity = result.1.unwrap();
-                        let mut intent = self.ecs.write_storage::<WantsToDrinkPotion>();
+                        let is_ranged = self.ecs.read_storage::<Ranged>();
+                        let is_item_ranged = is_ranged.get(item_entity);
+                        if let Some(is_item_ranged) = is_item_ranged {
+                            newrunstate = RunState::ShowTargeting {
+                                range: is_item_ranged.range,
+                                item: item_entity,
+                            };
+                        } else {
+                            let mut intent = self.ecs.write_storage::<WantsToUseItem>();
+                            intent
+                                .insert(
+                                    *self.ecs.fetch::<Entity>(),
+                                    WantsToUseItem {
+                                        item: item_entity,
+                                        target: None,
+                                    },
+                                )
+                                .expect("ShowInventory: Unable to insert intent");
+                            newrunstate = RunState::PlayerTurn;
+                        }
+                    }
+                }
+            }
+            RunState::ShowTargeting { range, item } => {
+                let result = gui::ranged_target(self, ctx, range);
+                match result.0 {
+                    gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    gui::ItemMenuResult::NoResponse => {}
+                    gui::ItemMenuResult::Selected => {
+                        let mut intent = self.ecs.write_storage::<WantsToUseItem>();
                         intent
                             .insert(
                                 *self.ecs.fetch::<Entity>(),
-                                WantsToDrinkPotion {
-                                    potion: item_entity,
+                                WantsToUseItem {
+                                    item,
+                                    target: result.1,
                                 },
                             )
-                            .expect("ShowInventory: Unable to insert intent");
+                            .expect("ShowTargeting: Unable to insert intent");
                         newrunstate = RunState::PlayerTurn;
                     }
                 }
@@ -149,8 +181,8 @@ impl State {
         mob.run_now(&self.ecs);
         let mut mapindex = MapIndexingSystem {};
         mapindex.run_now(&self.ecs);
-        let mut potions = PotionUseSystem {};
-        potions.run_now(&self.ecs);
+        let mut item_use = ItemUseSystem {};
+        item_use.run_now(&self.ecs);
         let mut melee = MeleeCombatSystem {};
         melee.run_now(&self.ecs);
         let mut damage = DamageSystem {};
@@ -164,7 +196,7 @@ impl State {
 }
 
 fn main() {
-    let mut context = Rltk::init_simple8x8(MAPWIDTH as u32, 50, "Hello Rust World", "resources");
+    let context = Rltk::init_simple8x8(MAPWIDTH as u32, 50, "Hello Rust World", "resources");
     // Uncomment below for old-style retro feel
     // context.with_post_scanlines(true);
     let mut gs = State { ecs: World::new() };
@@ -183,7 +215,13 @@ fn main() {
     gs.ecs.register::<InBackpack>();
     gs.ecs.register::<WantsToDropItem>();
     gs.ecs.register::<WantsToPickupItem>();
-    gs.ecs.register::<WantsToDrinkPotion>();
+    gs.ecs.register::<WantsToUseItem>();
+    gs.ecs.register::<Consumable>();
+    gs.ecs.register::<ProvidesHealing>();
+    gs.ecs.register::<Ranged>();
+    gs.ecs.register::<InflictsDamage>();
+    gs.ecs.register::<AreaOfEffect>();
+    gs.ecs.register::<Confusion>();
 
     let map = Map::new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
