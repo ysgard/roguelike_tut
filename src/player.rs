@@ -2,7 +2,7 @@ use super::{
     gamelog::GameLog, CombatStats, Item, Map, Player, Position, RunState, State, Viewshed,
     WantsToMelee, WantsToPickupItem,
 };
-use rltk::{console, Point, Rltk, VirtualKeyCode};
+use rltk::{Point, Rltk, VirtualKeyCode};
 use specs::prelude::*;
 use std::cmp::{max, min};
 
@@ -23,7 +23,6 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
         for potential_target in map.tile_content[destination_idx].iter() {
             let target = combat_stats.get(*potential_target);
             if let Some(_target) = target {
-                console::log("Found target, inserting WantsToMelee");
                 wants_to_melee
                     .insert(
                         entity,
@@ -68,6 +67,9 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
             VirtualKeyCode::G => get_item(&mut gs.ecs),
             VirtualKeyCode::I => return RunState::ShowInventory,
             VirtualKeyCode::D => return RunState::ShowDropItem,
+
+            // Save and Quit
+            VirtualKeyCode::Escape => return RunState::SaveGame,
 
             _ => return RunState::AwaitingInput,
         },

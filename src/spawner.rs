@@ -3,9 +3,11 @@ use rltk::{RandomNumberGenerator, RGB};
 extern crate specs;
 use super::{
     AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable, InBackpack, InflictsDamage, Item,
-    Monster, Name, Player, Position, ProvidesHealing, Ranged, Rect, Renderable, Viewshed, MAPWIDTH,
+    Monster, Name, Player, Position, ProvidesHealing, Ranged, Rect, Renderable, SerializeMe,
+    Viewshed, MAPWIDTH,
 };
 use specs::prelude::*;
+use specs::saveload::{MarkedBuilder, SimpleMarker};
 
 const MAX_MONSTERS: i32 = 4;
 const MAX_ITEMS: i32 = 2;
@@ -38,6 +40,7 @@ pub fn player(ecs: &mut World, player_x: i32, player_y: i32) -> Entity {
             defense: 2,
             power: 5,
         })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build()
 }
 
@@ -87,6 +90,7 @@ fn monster<S: ToString>(ecs: &mut World, x: i32, y: i32, glyph: u8, name: S) {
             defense: 1,
             power: 4,
         })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
@@ -105,6 +109,7 @@ fn health_potion(ecs: &mut World, x: i32, y: i32) {
         .with(Item {})
         .with(Consumable {})
         .with(ProvidesHealing { heal_amount: 8 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
@@ -127,6 +132,7 @@ pub fn spawn_backpack(ecs: &mut World) {
         .with(Item {})
         .with(Consumable {})
         .with(ProvidesHealing { heal_amount: 8 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
     ecs.create_entity()
         .with(InBackpack {
@@ -145,6 +151,7 @@ pub fn spawn_backpack(ecs: &mut World) {
         .with(Consumable {})
         .with(Ranged { range: 6 })
         .with(InflictsDamage { damage: 8 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
     ecs.create_entity()
         .with(InBackpack {
@@ -164,6 +171,7 @@ pub fn spawn_backpack(ecs: &mut World) {
         .with(Ranged { range: 6 })
         .with(InflictsDamage { damage: 20 })
         .with(AreaOfEffect { radius: 3 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
     ecs.create_entity()
         .with(InBackpack {
@@ -182,6 +190,7 @@ pub fn spawn_backpack(ecs: &mut World) {
         .with(Consumable {})
         .with(Ranged { range: 6 })
         .with(Confusion { turns: 4 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
@@ -216,6 +225,7 @@ fn fireball_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Ranged { range: 6 })
         .with(InflictsDamage { damage: 20 })
         .with(AreaOfEffect { radius: 3 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
@@ -288,6 +298,7 @@ fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Consumable {})
         .with(Ranged { range: 6 })
         .with(InflictsDamage { damage: 8 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
 
@@ -307,5 +318,6 @@ fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
         .with(Consumable {})
         .with(Ranged { range: 6 })
         .with(Confusion { turns: 4 })
+        .marked::<SimpleMarker<SerializeMe>>()
         .build();
 }
