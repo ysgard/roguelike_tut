@@ -84,6 +84,11 @@ pub fn save_game(ecs: &mut World) {
             WantsToPickupItem,
             WantsToUseItem,
             WantsToDropItem,
+            Equippable,
+            Equipped,
+            MeleePowerBonus,
+            DefenseBonus,
+            WantsToRemoveItem,
             SerializationHelper
         );
     }
@@ -143,6 +148,11 @@ pub fn load_game(ecs: &mut World) {
             WantsToPickupItem,
             WantsToUseItem,
             WantsToDropItem,
+            Equippable,
+            Equipped,
+            MeleePowerBonus,
+            WantsToRemoveItem,
+            DefenseBonus,
             SerializationHelper
         );
     }
@@ -175,3 +185,33 @@ pub fn delete_save() {
         std::fs::remove_file("./savegame.json").expect("delete_save: Unable to delete file");
     }
 }
+
+// Equipped wrapper
+// pub struct EquippedData<M>(M, EquipmentSlot);
+
+// impl<M: Marker + Serialize> ConvertSaveload<M> for Equipped
+// where
+//     for<'de> M: Deserialize<'de>,
+// {
+//     type Data = EquippedData<M>;
+//     type Error = NoError;
+
+//     fn convert_into<F>(&self, mut ids: F) -> Result<Self::Data, Self::Error>
+//     where
+//         F: FnMut(Entity) -> Option<M>,
+//     {
+//         let marker = ids(self.owner).unwrap();
+//         Ok(EquippedData(marker, self.slot))
+//     }
+
+//     fn convert_from<F>(data: Self::Data, mut ids: F) -> Result<Self, Self::Error>
+//     where
+//         F: FnMut(M) -> Option<Entity>,
+//     {
+//         let entity = ids(data.0).unwrap();
+//         Ok(Equipped {
+//             owner: entity,
+//             slot: data.1,
+//         })
+//     }
+// }
