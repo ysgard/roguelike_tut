@@ -90,6 +90,8 @@ pub fn save_game(ecs: &mut World) {
             DefenseBonus,
             WantsToRemoveItem,
             ParticleLifetime,
+            HungerClock,
+            ProvidesFood,
             SerializationHelper
         );
     }
@@ -155,6 +157,8 @@ pub fn load_game(ecs: &mut World) {
             DefenseBonus,
             WantsToRemoveItem,
             ParticleLifetime,
+            HungerClock,
+            ProvidesFood,
             SerializationHelper
         );
     }
