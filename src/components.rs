@@ -170,6 +170,9 @@ pub struct HungerClock {
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct ProvidesFood {}
 
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct MagicMapper {}
+
 // Serialization helper code. We need to implement ConvertSaveload fro each type that contains
 // an Entity.
 
