@@ -26,6 +26,7 @@ mod random_table;
 use random_table::RandomTable;
 mod hunger_system;
 mod particle_system;
+mod rex_assets;
 mod saveload_system;
 
 use rltk::{Console, GameState, Point, Rltk};
@@ -489,6 +490,8 @@ fn main() {
     gs.ecs.register::<SerializationHelper>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
+
+    gs.ecs.insert(rex_assets::RexAssets::new());
 
     let map = Map::new_map_rooms_and_corridors(1);
     let (player_x, player_y) = map.rooms[0].center();
