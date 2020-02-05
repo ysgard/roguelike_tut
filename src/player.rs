@@ -1,6 +1,6 @@
 use super::{
-    gamelog::GameLog, CombatStats, HungerClock, HungerState, Item, Map, Monster, Player, Position,
-    RunState, State, TileType, Viewshed, WantsToMelee, WantsToPickupItem,
+    gamelog::GameLog, CombatStats, EntityMoved, HungerClock, HungerState, Item, Map, Monster,
+    Player, Position, RunState, State, TileType, Viewshed, WantsToMelee, WantsToPickupItem,
 };
 use rltk::{Point, Rltk, VirtualKeyCode};
 use specs::prelude::*;
@@ -14,6 +14,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let combat_stats = ecs.read_storage::<CombatStats>();
     let mut wants_to_melee = ecs.write_storage::<WantsToMelee>();
     let map = ecs.fetch::<Map>();
+    let mut entity_moved = ecs.write_storage::<EntityMoved>();
 
     for (entity, _player, pos, viewshed) in
         (&entities, &players, &mut positions, &mut viewsheds).join()
@@ -43,6 +44,9 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             ppos.x = pos.x;
             ppos.y = pos.y;
             viewshed.dirty = true;
+            entity_moved
+                .insert(entity, EntityMoved {})
+                .expect("try_move_player: Unable to insert moved marker");
         }
     }
 }
