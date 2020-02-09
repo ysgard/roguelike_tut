@@ -312,7 +312,7 @@ fn room_table(map_depth: i32) -> RandomTable {
         .add("Tower Shield", map_depth - 1)
         .add("Rations", 10)
         .add("Magic Mapping Scroll", 2)
-        .add("Bear Trap", 100)
+        .add("Bear Trap", 5)
 }
 
 fn dagger(ecs: &mut World, x: i32, y: i32) {
