@@ -8,6 +8,7 @@ mod dla;
 mod drunkard;
 mod maze;
 mod simple_map;
+mod voronoi;
 use bsp_dungeon::BspDungeonBuilder;
 use bsp_interior::BspInteriorBuilder;
 use cellular_automata::CellularAutomataBuilder;
@@ -15,6 +16,7 @@ use dla::DLABuilder;
 use drunkard::DrunkardsWalkBuilder;
 use maze::MazeBuilder;
 use simple_map::SimpleMapBuilder;
+use voronoi::VoronoiCellBuilder;
 
 use specs::prelude::*;
 
@@ -29,7 +31,7 @@ pub trait MapBuilder {
 
 pub fn random_builder(new_depth: i32) -> Box<dyn MapBuilder> {
     let mut rng = rltk::RandomNumberGenerator::new();
-    let builder = rng.roll_dice(1, 14);
+    let builder = rng.roll_dice(1, 16);
     match builder {
         1 => Box::new(BspDungeonBuilder::new(new_depth)),
         2 => Box::new(BspInteriorBuilder::new(new_depth)),
@@ -44,6 +46,8 @@ pub fn random_builder(new_depth: i32) -> Box<dyn MapBuilder> {
         11 => Box::new(DLABuilder::insectoid(new_depth)),
         12 => Box::new(DrunkardsWalkBuilder::fat_passages(new_depth)),
         13 => Box::new(DrunkardsWalkBuilder::fearful_symmetry(new_depth)),
+        14 => Box::new(VoronoiCellBuilder::pythagoras(new_depth)),
+        15 => Box::new(VoronoiCellBuilder::manhattan(new_depth)),
         _ => Box::new(SimpleMapBuilder::new(new_depth)),
     }
 }
