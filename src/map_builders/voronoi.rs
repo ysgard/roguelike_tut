@@ -6,6 +6,7 @@ use rltk::RandomNumberGenerator;
 use specs::prelude::*;
 use std::collections::HashMap;
 
+#[allow(dead_code)]
 #[derive(PartialEq, Copy, Clone)]
 pub enum DistanceAlgorithm {
     Pythagoras,
@@ -58,6 +59,7 @@ impl MapBuilder for VoronoiCellBuilder {
 }
 
 impl VoronoiCellBuilder {
+    #[allow(dead_code)]
     pub fn new(new_depth: i32) -> VoronoiCellBuilder {
         VoronoiCellBuilder {
             map: Map::new(new_depth),

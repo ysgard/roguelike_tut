@@ -2,6 +2,7 @@ use super::{Map, Rect, TileType};
 use std::cmp::{max, min};
 use std::collections::HashMap;
 
+#[allow(dead_code)]
 #[derive(PartialEq, Copy, Clone)]
 pub enum Symmetry {
     None,
