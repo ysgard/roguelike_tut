@@ -11,6 +11,7 @@ pub struct BspDungeonBuilder {
     rooms: Vec<Rect>,
     history: Vec<Map>,
     rects: Vec<Rect>,
+    spawn_list: Vec<(usize, String)>,
 }
 
 impl MapBuilder for BspDungeonBuilder {
@@ -26,14 +27,12 @@ impl MapBuilder for BspDungeonBuilder {
         self.history.clone()
     }
 
-    fn build_map(&mut self) {
-        self.build();
+    fn get_spawn_list(&self) -> &Vec<(usize, String)> {
+        &self.spawn_list
     }
 
-    fn spawn_entities(&mut self, ecs: &mut World) {
-        for room in self.rooms.iter().skip(1) {
-            spawner::spawn_room(ecs, room, self.depth);
-        }
+    fn build_map(&mut self) {
+        self.build();
     }
 
     fn take_snapshot(&mut self) {
@@ -56,6 +55,7 @@ impl BspDungeonBuilder {
             rooms: Vec::new(),
             history: Vec::new(),
             rects: Vec::new(),
+            spawn_list: Vec::new(),
         }
     }
 
@@ -110,6 +110,11 @@ impl BspDungeonBuilder {
         let stairs = self.rooms[self.rooms.len() - 1].center();
         let stairs_idx = self.map.xy_idx(stairs.0, stairs.1);
         self.map.tiles[stairs_idx] = TileType::DownStairs;
+
+        // And the entities
+        for room in self.rooms.iter().skip(1) {
+            spawner::spawn_room(&self.map, &mut rng, room, self.depth, &mut self.spawn_list);
+        }
     }
 
     fn add_subrects(&mut self, rect: Rect) {
