@@ -233,7 +233,7 @@ pub fn spawn_room(
 
 // Fills a region with stuff!
 pub fn spawn_region(
-    map: &Map,
+    _map: &Map,
     rng: &mut RandomNumberGenerator,
     area: &[usize],
     map_depth: i32,
