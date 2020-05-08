@@ -15,6 +15,7 @@ mod room_based_spawner;
 mod room_based_stairs;
 mod room_based_starting_position;
 mod room_corner_rounding;
+mod room_draw;
 mod room_exploder;
 mod room_sorter;
 mod rooms_corridors_bsp;
@@ -37,6 +38,7 @@ use room_based_spawner::RoomBasedSpawner;
 use room_based_stairs::RoomBasedStairs;
 use room_based_starting_position::RoomBasedStartingPosition;
 use room_corner_rounding::RoomCornerRounder;
+use room_draw::RoomDrawer;
 use room_exploder::RoomExploder;
 use room_sorter::{RoomSort, RoomSorter};
 use rooms_corridors_bsp::BspCorridors;
@@ -204,6 +206,8 @@ fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder: &mut Buil
             _ => builder.with(RoomSorter::new(RoomSort::CENTRAL)),
         }
 
+        builder.with(RoomDrawer::new());
+
         let corridor_roll = rng.roll_dice(1, 2);
         match corridor_roll {
             1 => builder.with(DoglegCorridors::new()),
@@ -242,8 +246,9 @@ fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder: &mut Buil
 
 // pub fn random_builder(new_depth: i32, rng: &mut rltk::RandomNumberGenerator) -> BuilderChain {
 //     let mut builder = BuilderChain::new(new_depth);
-//     builder.start_with(BspDungeonBuilder::new());
-//     builder.with(RoomSorter::new(RoomSort::CENTRAL));
+//     builder.start_with(SimpleMapBuilder::new());
+//     builder.with(RoomDrawer::new());
+//     builder.with(RoomSorter::new(RoomSort::LEFTMOST));
 //     builder.with(BspCorridors::new());
 //     builder.with(RoomBasedSpawner::new());
 //     builder.with(RoomBasedStairs::new());
