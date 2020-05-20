@@ -195,3 +195,11 @@ pub struct SerializeMe;
 pub struct SerializationHelper {
     pub map: super::map::Map,
 }
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct BlocksVisibility {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Door {
+    pub open: bool,
+}

@@ -97,7 +97,9 @@ pub fn save_game(ecs: &mut World) {
             EntryTrigger,
             EntityMoved,
             SingleActivation,
-            SerializationHelper
+            SerializationHelper,
+            Door,
+            BlocksVisibility
         );
     }
 
@@ -169,7 +171,9 @@ pub fn load_game(ecs: &mut World) {
             EntryTrigger,
             EntityMoved,
             SingleActivation,
-            SerializationHelper
+            SerializationHelper,
+            Door,
+            BlocksVisibility
         );
     }
 

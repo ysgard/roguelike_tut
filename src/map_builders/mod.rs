@@ -8,6 +8,7 @@ mod cellular_automata;
 mod cull_unreachable;
 mod distant_exit;
 mod dla;
+mod door_placement;
 mod drunkard;
 mod maze;
 mod prefab_builder;
@@ -34,6 +35,7 @@ use cellular_automata::CellularAutomataBuilder;
 use cull_unreachable::CullUnreachable;
 use distant_exit::DistantExit;
 use dla::DLABuilder;
+use door_placement::DoorPlacement;
 use drunkard::DrunkardsWalkBuilder;
 use maze::MazeBuilder;
 use prefab_builder::PrefabBuilder;
@@ -261,12 +263,9 @@ fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder: &mut Buil
 
 // pub fn random_builder(new_depth: i32, rng: &mut rltk::RandomNumberGenerator) -> BuilderChain {
 //     let mut builder = BuilderChain::new(new_depth);
-//     builder.start_with(SimpleMapBuilder::new());
-//     builder.with(RoomDrawer::new());
-//     builder.with(RoomSorter::new(RoomSort::LEFTMOST));
-//     builder.with(StraightLineCorridors::new());
+//     builder.start_with(BspInteriorBuilder::new());
+//     builder.with(DoorPlacement::new());
 //     builder.with(RoomBasedSpawner::new());
-//     builder.with(CorridorSpawner::new());
 //     builder.with(RoomBasedStairs::new());
 //     builder.with(RoomBasedStartingPosition::new());
 //     builder
@@ -282,6 +281,14 @@ pub fn random_builder(new_depth: i32, rng: &mut rltk::RandomNumberGenerator) -> 
 
     if rng.roll_dice(1, 3) == 1 {
         builder.with(WaveformCollapseBuilder::new());
+
+        // Now set the start to a random starting area
+        let (start_x, start_y) = random_start_position(rng);
+        builder.with(AreaStartingPosition::new(start_x, start_y));
+
+        // Setup an exit and spawn mobs
+        builder.with(VoronoiSpawning::new());
+        builder.with(DistantExit::new());
     }
 
     if rng.roll_dice(1, 20) == 1 {
@@ -290,6 +297,7 @@ pub fn random_builder(new_depth: i32, rng: &mut rltk::RandomNumberGenerator) -> 
         ));
     }
 
+    builder.with(DoorPlacement::new());
     builder.with(PrefabBuilder::vaults());
 
     builder

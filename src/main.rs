@@ -522,6 +522,8 @@ fn main() {
     gs.ecs.register::<EntryTrigger>();
     gs.ecs.register::<EntityMoved>();
     gs.ecs.register::<SingleActivation>();
+    gs.ecs.register::<Door>();
+    gs.ecs.register::<BlocksVisibility>();
 
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
