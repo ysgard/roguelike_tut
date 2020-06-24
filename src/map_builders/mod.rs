@@ -265,16 +265,6 @@ fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder: &mut Buil
     }
 }
 
-// pub fn random_builder(new_depth: i32, rng: &mut rltk::RandomNumberGenerator) -> BuilderChain {
-//     let mut builder = BuilderChain::new(new_depth);
-//     builder.start_with(BspInteriorBuilder::new());
-//     builder.with(DoorPlacement::new());
-//     builder.with(RoomBasedSpawner::new());
-//     builder.with(RoomBasedStairs::new());
-//     builder.with(RoomBasedStartingPosition::new());
-//     builder
-// }
-
 pub fn random_builder(
     new_depth: i32,
     rng: &mut rltk::RandomNumberGenerator,
@@ -282,32 +272,55 @@ pub fn random_builder(
     height: i32,
 ) -> BuilderChain {
     let mut builder = BuilderChain::new(new_depth, width, height);
-    let type_roll = rng.roll_dice(1, 2);
-    match type_roll {
-        1 => random_room_builder(rng, &mut builder),
-        _ => random_shape_builder(rng, &mut builder),
-    }
-
-    if rng.roll_dice(1, 3) == 1 {
-        builder.with(WaveformCollapseBuilder::new());
-
-        // Now set the start to a random starting area
-        let (start_x, start_y) = random_start_position(rng);
-        builder.with(AreaStartingPosition::new(start_x, start_y));
-
-        // Setup an exit and spawn mobs
-        builder.with(VoronoiSpawning::new());
-        builder.with(DistantExit::new());
-    }
-
-    if rng.roll_dice(1, 20) == 1 {
-        builder.with(PrefabBuilder::sectional(
-            prefab_builder::prefab_sections::UNDERGROUND_FORT,
-        ));
-    }
-
-    builder.with(DoorPlacement::new());
-    builder.with(PrefabBuilder::vaults());
-
+    builder.start_with(BspInteriorBuilder::new());
+    builder.with(WaveformCollapseBuilder::new());
+    let (start_x, start_y) = random_start_position(rng);
+    builder.with(AreaStartingPosition::new(start_x, start_y));
+    builder.with(DistantExit::new());
+    builder.with(VoronoiSpawning::new());
+    println!("Builder dump:");
+    println!(
+        "length of map vector: {:?}",
+        builder.build_data.map.tiles.len()
+    );
+    println!("width: {:?}", builder.build_data.map.width);
+    println!("height: {:?}", builder.build_data.map.height);
     builder
 }
+
+// pub fn random_builder(
+//     new_depth: i32,
+//     rng: &mut rltk::RandomNumberGenerator,
+//     width: i32,
+//     height: i32,
+// ) -> BuilderChain {
+//     let mut builder = BuilderChain::new(new_depth, width, height);
+//     let type_roll = rng.roll_dice(1, 2);
+//     match type_roll {
+//         1 => random_room_builder(rng, &mut builder),
+//         _ => random_shape_builder(rng, &mut builder),
+//     }
+
+//     if rng.roll_dice(1, 3) == 1 {
+//         builder.with(WaveformCollapseBuilder::new());
+
+//         // Now set the start to a random starting area
+//         let (start_x, start_y) = random_start_position(rng);
+//         builder.with(AreaStartingPosition::new(start_x, start_y));
+
+//         // Setup an exit and spawn mobs
+//         builder.with(VoronoiSpawning::new());
+//         builder.with(DistantExit::new());
+//     }
+
+//     if rng.roll_dice(1, 20) == 1 {
+//         builder.with(PrefabBuilder::sectional(
+//             prefab_builder::prefab_sections::UNDERGROUND_FORT,
+//         ));
+//     }
+
+//     builder.with(DoorPlacement::new());
+//     builder.with(PrefabBuilder::vaults());
+
+//     builder
+// }

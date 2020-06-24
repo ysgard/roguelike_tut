@@ -1,12 +1,13 @@
 use super::{BuilderMap, Map, MetaMapBuilder, TileType};
 use rltk::RandomNumberGenerator;
-mod constraints;
-use constraints::*;
 mod common;
 use common::*;
+mod constraints;
+use constraints::*;
 mod solver;
 use solver::*;
 
+/// Provides a map builder using the Wave Function Collapse algorithm.
 pub struct WaveformCollapseBuilder {}
 
 impl MetaMapBuilder for WaveformCollapseBuilder {
@@ -16,6 +17,7 @@ impl MetaMapBuilder for WaveformCollapseBuilder {
 }
 
 impl WaveformCollapseBuilder {
+    /// Constructor for waveform collapse.
     #[allow(dead_code)]
     pub fn new() -> Box<WaveformCollapseBuilder> {
         Box::new(WaveformCollapseBuilder {})
@@ -32,6 +34,9 @@ impl WaveformCollapseBuilder {
         let old_map = build_data.map.clone();
 
         build_data.map = Map::new(build_data.map.depth, build_data.width, build_data.height);
+        build_data.spawn_list.clear();
+        build_data.rooms = None;
+        build_data.corridors = None;
         let mut tries = 0;
         loop {
             let mut solver = Solver::new(constraints.clone(), CHUNK_SIZE, &build_data.map);
@@ -82,6 +87,7 @@ impl WaveformCollapseBuilder {
                     y = 1;
                 }
             }
+
             counter += 1;
         }
         build_data.take_snapshot();

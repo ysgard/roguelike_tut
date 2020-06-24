@@ -1,17 +1,16 @@
-extern crate specs;
 use super::{gamelog::GameLog, BlocksVisibility, Hidden, Map, Name, Player, Position, Viewshed};
-use specs::prelude::*;
-extern crate rltk;
 use rltk::{field_of_view, Point};
+use specs::prelude::*;
 
 pub struct VisibilitySystem {}
 
 impl<'a> System<'a> for VisibilitySystem {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         WriteExpect<'a, Map>,
         Entities<'a>,
         WriteStorage<'a, Viewshed>,
-        WriteStorage<'a, Position>,
+        ReadStorage<'a, Position>,
         ReadStorage<'a, Player>,
         WriteStorage<'a, Hidden>,
         WriteExpect<'a, rltk::RandomNumberGenerator>,
@@ -43,12 +42,11 @@ impl<'a> System<'a> for VisibilitySystem {
         for (ent, viewshed, pos) in (&entities, &mut viewshed, &pos).join() {
             if viewshed.dirty {
                 viewshed.dirty = false;
-                viewshed.visible_tiles.clear();
                 viewshed.visible_tiles =
                     field_of_view(Point::new(pos.x, pos.y), viewshed.range, &*map);
                 viewshed
                     .visible_tiles
-                    .retain(|p| p.x > 0 && p.x < map.width - 1 && p.y > 0 && p.y < map.height - 1);
+                    .retain(|p| p.x >= 0 && p.x < map.width && p.y >= 0 && p.y < map.height);
 
                 // If this is the player, reveal what they can see
                 let _p: Option<&Player> = player.get(ent);
@@ -57,21 +55,24 @@ impl<'a> System<'a> for VisibilitySystem {
                         *t = false
                     }
                     for vis in viewshed.visible_tiles.iter() {
-                        let idx = map.xy_idx(vis.x, vis.y);
-                        map.revealed_tiles[idx] = true;
-                        map.visible_tiles[idx] = true;
+                        if vis.x > 0 && vis.x < map.width - 1 && vis.y > 0 && vis.y < map.height - 1
+                        {
+                            let idx = map.xy_idx(vis.x, vis.y);
+                            map.revealed_tiles[idx] = true;
+                            map.visible_tiles[idx] = true;
 
-                        // Chance to reveal hidden things
-                        for e in map.tile_content[idx].iter() {
-                            let maybe_hidden = hidden.get(*e);
-                            if let Some(_maybe_hidden) = maybe_hidden {
-                                if rng.roll_dice(1, 24) == 1 {
-                                    let name = names.get(*e);
-                                    if let Some(name) = name {
-                                        log.entries
-                                            .insert(0, format!("You spotted a {}.", &name.name));
+                            // Chance to reveal hidden things
+                            for e in map.tile_content[idx].iter() {
+                                let maybe_hidden = hidden.get(*e);
+                                if let Some(_maybe_hidden) = maybe_hidden {
+                                    if rng.roll_dice(1, 24) == 1 {
+                                        let name = names.get(*e);
+                                        if let Some(name) = name {
+                                            log.entries
+                                                .push(format!("You spotted a {}.", &name.name));
+                                        }
+                                        hidden.remove(*e);
                                     }
-                                    hidden.remove(*e);
                                 }
                             }
                         }

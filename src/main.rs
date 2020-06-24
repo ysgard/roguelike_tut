@@ -1,4 +1,5 @@
 mod components;
+pub mod raws;
 pub use components::*;
 mod map;
 pub use map::*;
@@ -38,6 +39,8 @@ use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 #[macro_use]
 extern crate specs_derive;
 extern crate serde;
+#[macro_use]
+extern crate lazy_static;
 
 rltk::add_wasm_support!();
 
@@ -420,7 +423,7 @@ impl State {
         self.mapgen_timer = 0.0;
         self.mapgen_history.clear();
         let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
-        let mut builder = map_builders::random_builder(new_depth, &mut rng, 80, 5
+        let mut builder = map_builders::random_builder(new_depth, &mut rng, 80, 50);
         builder.build_map(&mut rng);
         std::mem::drop(rng);
         self.mapgen_history = builder.build_data.history.clone();
@@ -515,6 +518,8 @@ fn main() {
     gs.ecs.register::<SerializationHelper>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
+
+    raws::load_raws();
 
     gs.ecs.insert(rex_assets::RexAssets::new());
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
