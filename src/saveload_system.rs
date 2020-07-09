@@ -1,105 +1,51 @@
-use super::components::*;
-use specs::error::NoError;
 use specs::prelude::*;
-use specs::saveload::{
-    DeserializeComponents, MarkedBuilder, SerializeComponents, SimpleMarker, SimpleMarkerAllocator,
-};
-use std::fs;
+use specs::saveload::{SimpleMarker, SimpleMarkerAllocator, SerializeComponents, DeserializeComponents, MarkedBuilder};
+use specs::error::NoError;
+use super::components::*;
 use std::fs::File;
 use std::path::Path;
+use std::fs;
 
 macro_rules! serialize_individually {
     ($ecs:expr, $ser:expr, $data:expr, $( $type:ty),*) => {
         $(
-            SerializeComponents::<NoError, SimpleMarker<SerializeMe>>::serialize(
-                &( $ecs.read_storage::<$type>(), ),
-                &$data.0,
-                &$data.1,
-                &mut $ser,
-            )
-                .unwrap();
-        )*
-    };
-}
-
-macro_rules! deserialize_individually {
-    ($ecs:expr, $de:expr, $data:expr, $( $type:ty),*) => {
-        $(
-            DeserializeComponents::<NoError, _>::deserialize(
-                &mut ( &mut $ecs.write_storage::<$type>(), ),
-                &mut $data.0, // entities
-                &mut $data.1, // marker
-                &mut $data.2, // allocator
-                &mut $de,
-            )
-                .unwrap();
+        SerializeComponents::<NoError, SimpleMarker<SerializeMe>>::serialize(
+            &( $ecs.read_storage::<$type>(), ),
+            &$data.0,
+            &$data.1,
+            &mut $ser,
+        )
+        .unwrap();
         )*
     };
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn save_game(_ecs: &mut World) {}
+pub fn save_game(_ecs : &mut World) {
+}
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn save_game(ecs: &mut World) {
+pub fn save_game(ecs : &mut World) {
     // Create helper
     let mapcopy = ecs.get_mut::<super::map::Map>().unwrap().clone();
     let savehelper = ecs
         .create_entity()
-        .with(SerializationHelper { map: mapcopy })
+        .with(SerializationHelper{ map : mapcopy })
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 
     // Actually serialize
     {
-        let data = (
-            ecs.entities(),
-            ecs.read_storage::<SimpleMarker<SerializeMe>>(),
-        );
+        let data = ( ecs.entities(), ecs.read_storage::<SimpleMarker<SerializeMe>>() );
 
         let writer = File::create("./savegame.json").unwrap();
         let mut serializer = serde_json::Serializer::new(writer);
-        serialize_individually!(
-            ecs,
-            serializer,
-            data,
-            Position,
-            Renderable,
-            Player,
-            Viewshed,
-            Monster,
-            Name,
-            BlocksTile,
-            CombatStats,
-            SufferDamage,
-            WantsToMelee,
-            Item,
-            Consumable,
-            Ranged,
-            InflictsDamage,
-            AreaOfEffect,
-            Confusion,
-            ProvidesHealing,
-            InBackpack,
-            WantsToPickupItem,
-            WantsToUseItem,
-            WantsToDropItem,
-            Equippable,
-            Equipped,
-            MeleePowerBonus,
-            DefenseBonus,
-            WantsToRemoveItem,
-            ParticleLifetime,
-            HungerClock,
-            ProvidesFood,
-            MagicMapper,
-            Hidden,
-            EntryTrigger,
-            EntityMoved,
-            SingleActivation,
-            SerializationHelper,
-            Door,
-            BlocksVisibility
+        serialize_individually!(ecs, serializer, data, Position, Renderable, Player, Viewshed, Monster,
+            Name, BlocksTile, CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
+            AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
+            WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus,
+            WantsToRemoveItem, ParticleLifetime, HungerClock, ProvidesFood, MagicMapper, Hidden,
+            EntryTrigger, EntityMoved, SingleActivation, BlocksVisibility, Door
         );
     }
 
@@ -111,6 +57,21 @@ pub fn does_save_exist() -> bool {
     Path::new("./savegame.json").exists()
 }
 
+macro_rules! deserialize_individually {
+    ($ecs:expr, $de:expr, $data:expr, $( $type:ty),*) => {
+        $(
+        DeserializeComponents::<NoError, _>::deserialize(
+            &mut ( &mut $ecs.write_storage::<$type>(), ),
+            &$data.0, // entities
+            &mut $data.1, // marker
+            &mut $data.2, // allocater
+            &mut $de,
+        )
+        .unwrap();
+        )*
+    };
+}
+
 pub fn load_game(ecs: &mut World) {
     {
         // Delete everything
@@ -119,8 +80,7 @@ pub fn load_game(ecs: &mut World) {
             to_delete.push(e);
         }
         for del in to_delete.iter() {
-            ecs.delete_entity(*del)
-                .expect("load_game: unable to delete");
+            ecs.delete_entity(*del).expect("Deletion failed");
         }
     }
 
@@ -128,110 +88,39 @@ pub fn load_game(ecs: &mut World) {
     let mut de = serde_json::Deserializer::from_str(&data);
 
     {
-        let mut d = (
-            &mut ecs.entities(),
-            &mut ecs.write_storage::<SimpleMarker<SerializeMe>>(),
-            &mut ecs.write_resource::<SimpleMarkerAllocator<SerializeMe>>(),
-        );
-        deserialize_individually!(
-            ecs,
-            de,
-            d,
-            Position,
-            Renderable,
-            Player,
-            Viewshed,
-            Monster,
-            Name,
-            BlocksTile,
-            CombatStats,
-            SufferDamage,
-            WantsToMelee,
-            Item,
-            Consumable,
-            Ranged,
-            InflictsDamage,
-            AreaOfEffect,
-            Confusion,
-            ProvidesHealing,
-            InBackpack,
-            WantsToPickupItem,
-            WantsToUseItem,
-            WantsToDropItem,
-            Equippable,
-            Equipped,
-            MeleePowerBonus,
-            DefenseBonus,
-            WantsToRemoveItem,
-            ParticleLifetime,
-            HungerClock,
-            ProvidesFood,
-            MagicMapper,
-            Hidden,
-            EntryTrigger,
-            EntityMoved,
-            SingleActivation,
-            SerializationHelper,
-            Door,
-            BlocksVisibility
+        let mut d = (&mut ecs.entities(), &mut ecs.write_storage::<SimpleMarker<SerializeMe>>(), &mut ecs.write_resource::<SimpleMarkerAllocator<SerializeMe>>());
+
+        deserialize_individually!(ecs, de, d, Position, Renderable, Player, Viewshed, Monster,
+            Name, BlocksTile, CombatStats, SufferDamage, WantsToMelee, Item, Consumable, Ranged, InflictsDamage,
+            AreaOfEffect, Confusion, ProvidesHealing, InBackpack, WantsToPickupItem, WantsToUseItem,
+            WantsToDropItem, SerializationHelper, Equippable, Equipped, MeleePowerBonus, DefenseBonus,
+            WantsToRemoveItem, ParticleLifetime, HungerClock, ProvidesFood, MagicMapper, Hidden,
+            EntryTrigger, EntityMoved, SingleActivation, BlocksVisibility, Door
         );
     }
 
-    let mut deleteme: Option<Entity> = None;
+    let mut deleteme : Option<Entity> = None;
     {
         let entities = ecs.entities();
         let helper = ecs.read_storage::<SerializationHelper>();
         let player = ecs.read_storage::<Player>();
         let position = ecs.read_storage::<Position>();
-        for (e, h) in (&entities, &helper).join() {
+        for (e,h) in (&entities, &helper).join() {
             let mut worldmap = ecs.write_resource::<super::map::Map>();
             *worldmap = h.map.clone();
-            worldmap.tile_content = vec![Vec::new(); (worldmap.width * worldmap.height) as usize];
+            worldmap.tile_content = vec![Vec::new(); (worldmap.height * worldmap.width) as usize];
             deleteme = Some(e);
         }
-        for (e, _p, pos) in (&entities, &player, &position).join() {
+        for (e,_p,pos) in (&entities, &player, &position).join() {
             let mut ppos = ecs.write_resource::<rltk::Point>();
             *ppos = rltk::Point::new(pos.x, pos.y);
             let mut player_resource = ecs.write_resource::<Entity>();
             *player_resource = e;
         }
     }
-    ecs.delete_entity(deleteme.unwrap())
-        .expect("load_game: unable to delete helper");
+    ecs.delete_entity(deleteme.unwrap()).expect("Unable to delete helper");
 }
 
 pub fn delete_save() {
-    if Path::new("./savegame.json").exists() {
-        std::fs::remove_file("./savegame.json").expect("delete_save: Unable to delete file");
-    }
+    if Path::new("./savegame.json").exists() { std::fs::remove_file("./savegame.json").expect("Unable to delete file"); }
 }
-
-// Equipped wrapper
-// pub struct EquippedData<M>(M, EquipmentSlot);
-
-// impl<M: Marker + Serialize> ConvertSaveload<M> for Equipped
-// where
-//     for<'de> M: Deserialize<'de>,
-// {
-//     type Data = EquippedData<M>;
-//     type Error = NoError;
-
-//     fn convert_into<F>(&self, mut ids: F) -> Result<Self::Data, Self::Error>
-//     where
-//         F: FnMut(Entity) -> Option<M>,
-//     {
-//         let marker = ids(self.owner).unwrap();
-//         Ok(EquippedData(marker, self.slot))
-//     }
-
-//     fn convert_from<F>(data: Self::Data, mut ids: F) -> Result<Self, Self::Error>
-//     where
-//         F: FnMut(M) -> Option<Entity>,
-//     {
-//         let entity = ids(data.0).unwrap();
-//         Ok(Equipped {
-//             owner: entity,
-//             slot: data.1,
-//         })
-//     }
-// }
