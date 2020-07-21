@@ -1,4 +1,4 @@
-use super::{MetaMapBuilder, BuilderMap, Map, TileType};
+use super::{BuilderMap, Map, MetaMapBuilder, TileType};
 use rltk::RandomNumberGenerator;
 mod common;
 use common::*;
@@ -11,7 +11,7 @@ use solver::*;
 pub struct WaveformCollapseBuilder {}
 
 impl MetaMapBuilder for WaveformCollapseBuilder {
-    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data : &mut BuilderMap)  {
+    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data: &mut BuilderMap) {
         self.build(rng, build_data);
     }
 }
@@ -20,11 +20,11 @@ impl WaveformCollapseBuilder {
     /// Constructor for waveform collapse.
     #[allow(dead_code)]
     pub fn new() -> Box<WaveformCollapseBuilder> {
-        Box::new(WaveformCollapseBuilder{})
+        Box::new(WaveformCollapseBuilder {})
     }
 
-    fn build(&mut self, rng : &mut RandomNumberGenerator, build_data : &mut BuilderMap) {
-        const CHUNK_SIZE :i32 = 8;
+    fn build(&mut self, rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap) {
+        const CHUNK_SIZE: i32 = 8;
         build_data.take_snapshot();
 
         let patterns = build_patterns(&build_data.map, CHUNK_SIZE, true, true);
@@ -44,9 +44,13 @@ impl WaveformCollapseBuilder {
                 build_data.take_snapshot();
             }
             build_data.take_snapshot();
-            if solver.possible { break; } // If it has hit an impossible condition, try again
+            if solver.possible {
+                break;
+            } // If it has hit an impossible condition, try again
             tries += 1;
-            if tries > 10 { break; }
+            if tries > 10 {
+                break;
+            }
         }
 
         if tries > 10 {
@@ -55,7 +59,12 @@ impl WaveformCollapseBuilder {
         }
     }
 
-    fn render_tile_gallery(&mut self, constraints: &[MapChunk], chunk_size: i32, build_data : &mut BuilderMap) {
+    fn render_tile_gallery(
+        &mut self,
+        constraints: &[MapChunk],
+        chunk_size: i32,
+        build_data: &mut BuilderMap,
+    ) {
         build_data.map = Map::new(0, build_data.width, build_data.height);
         let mut counter = 0;
         let mut x = 1;

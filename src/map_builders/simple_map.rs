@@ -1,11 +1,11 @@
-use super::{InitialMapBuilder, BuilderMap, Rect };
+use super::{BuilderMap, InitialMapBuilder, Rect};
 use rltk::RandomNumberGenerator;
 
 pub struct SimpleMapBuilder {}
 
 impl InitialMapBuilder for SimpleMapBuilder {
     #[allow(dead_code)]
-    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data : &mut BuilderMap) {
+    fn build_map(&mut self, rng: &mut rltk::RandomNumberGenerator, build_data: &mut BuilderMap) {
         self.build_rooms(rng, build_data);
     }
 }
@@ -13,14 +13,14 @@ impl InitialMapBuilder for SimpleMapBuilder {
 impl SimpleMapBuilder {
     #[allow(dead_code)]
     pub fn new() -> Box<SimpleMapBuilder> {
-        Box::new(SimpleMapBuilder{})
+        Box::new(SimpleMapBuilder {})
     }
 
-    fn build_rooms(&mut self, rng : &mut RandomNumberGenerator, build_data : &mut BuilderMap) {
-        const MAX_ROOMS : i32 = 30;
-        const MIN_SIZE : i32 = 6;
-        const MAX_SIZE : i32 = 10;
-        let mut rooms : Vec<Rect> = Vec::new();
+    fn build_rooms(&mut self, rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap) {
+        const MAX_ROOMS: i32 = 30;
+        const MIN_SIZE: i32 = 6;
+        const MAX_SIZE: i32 = 10;
+        let mut rooms: Vec<Rect> = Vec::new();
 
         for _ in 0..MAX_ROOMS {
             let w = rng.range(MIN_SIZE, MAX_SIZE);
@@ -30,7 +30,9 @@ impl SimpleMapBuilder {
             let new_room = Rect::new(x, y, w, h);
             let mut ok = true;
             for other_room in rooms.iter() {
-                if new_room.intersect(other_room) { ok = false }
+                if new_room.intersect(other_room) {
+                    ok = false
+                }
             }
             if ok {
                 rooms.push(new_room);
