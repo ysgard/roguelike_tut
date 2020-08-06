@@ -25,6 +25,7 @@ mod rooms_corridors_dogleg;
 mod rooms_corridors_lines;
 mod rooms_corridors_nearest;
 mod simple_map;
+mod town;
 mod voronoi;
 mod voronoi_spawning;
 mod waveform_collapse;
@@ -53,6 +54,7 @@ use rooms_corridors_dogleg::DoglegCorridors;
 use rooms_corridors_lines::StraightLineCorridors;
 use rooms_corridors_nearest::NearestCorridors;
 use simple_map::SimpleMapBuilder;
+use town::town_builder;
 use voronoi::VoronoiCellBuilder;
 use voronoi_spawning::VoronoiSpawning;
 use waveform_collapse::WaveformCollapseBuilder;
@@ -299,4 +301,16 @@ pub fn random_builder(
     builder.with(PrefabBuilder::vaults());
 
     builder
+}
+
+pub fn level_builder(
+    new_depth: i32,
+    rng: &mut rltk::RandomNumberGenerator,
+    width: i32,
+    height: i32,
+) -> BuilderChain {
+    match new_depth {
+        1 => town_builder(new_depth, rng, width, height),
+        _ => random_builder(new_depth, rng, width, height),
+    }
 }

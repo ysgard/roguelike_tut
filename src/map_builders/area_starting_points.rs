@@ -50,7 +50,10 @@ impl AreaStartingPosition {
 
         let mut available_floors: Vec<(usize, f32)> = Vec::new();
         for (idx, tiletype) in build_data.map.tiles.iter().enumerate() {
-            if *tiletype == TileType::Floor {
+            if *tiletype == TileType::Floor
+                || *tiletype == TileType::Grass
+                || *tiletype == TileType::WoodFloor
+            {
                 available_floors.push((
                     idx,
                     rltk::DistanceAlg::PythagorasSquared.distance2d(

@@ -418,7 +418,7 @@ impl State {
         self.mapgen_timer = 0.0;
         self.mapgen_history.clear();
         let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
-        let mut builder = map_builders::random_builder(new_depth, &mut rng, 80, 50);
+        let mut builder = map_builders::level_builder(new_depth, &mut rng, 80, 50);
         builder.build_map(&mut rng);
         self.mapgen_history = builder.build_data.history.clone();
         let player_start;
@@ -460,7 +460,7 @@ impl State {
 
 fn main() -> rltk::BError {
     use rltk::RltkBuilder;
-    let mut context = RltkBuilder::simple80x50()
+    let context = RltkBuilder::simple80x50()
         .with_title("Roguelike Tutorial")
         .build()?;
     // context.with_post_scanlines(true);

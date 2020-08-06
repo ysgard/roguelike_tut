@@ -1,4 +1,3 @@
-use super::Renderable;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
