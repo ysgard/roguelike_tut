@@ -201,6 +201,9 @@ pub struct EntityMoved {}
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct SingleActivation {}
 
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Bystander {}
+
 // Serialization helper code. We need to implement ConvertSaveLoad for each type that contains an
 // Entity.
 

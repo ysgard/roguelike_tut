@@ -511,6 +511,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<SingleActivation>();
     gs.ecs.register::<BlocksVisibility>();
     gs.ecs.register::<Door>();
+    gs.ecs.register::<Bystander>();
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
     raws::load_raws();
